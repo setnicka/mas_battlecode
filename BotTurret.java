@@ -21,10 +21,7 @@ public class BotTurret extends Bot {
 
         while (true) {
         	
-        	// Nahodne chovani. Kopie z examplefuncsplayer.
-        	
             try {
-                // If this robot type can attack, check for enemies within range and attack one
                 if (rc.isWeaponReady()) {
                     RobotInfo[] enemiesWithinRange = rc.senseNearbyRobots(myAttackRange, enemyTeam);
                     RobotInfo[] zombiesWithinRange = rc.senseNearbyRobots(myAttackRange, Team.ZOMBIE);
