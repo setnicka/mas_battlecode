@@ -31,10 +31,6 @@ public class RobotPlayer {
 		    	robot = new BotTurret(rc);
 		    	break;
 		    	
-		    case TTM:
-		    	robot = new BotTTM(rc);
-		    	break;
-		    	
 		    case VIPER:
 		    	robot = new BotViper(rc);
 		    	break;
