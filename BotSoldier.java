@@ -6,22 +6,23 @@ public class BotSoldier extends Bot{
 	
 	public BotSoldier(RobotController rc) {
 		super(rc);
+
+		try {
+			// Sem patri kod, ktery se spusti pri vytvoreni robota.
+			// Kod, ktery pravdepodobne vyuzije kazdy typ robota, by mel prijit
+			// do konstruktoru tridy Bot.
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 	public void loop() {
-		try {
-            // Any code here gets executed exactly once at the beginning of the game.
-            myAttackRange = rc.getType().attackRadiusSquared;
-        } catch (Exception e) {
-            // Throwing an uncaught exception makes the robot die, so we need to catch exceptions.
-            // Caught exceptions will result in a bytecode penalty.
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
 
         while (true) {
-            // This is a loop to prevent the run() method from returning. Because of the Clock.yield()
-            // at the end of it, the loop will iterate once per game round.
+        	
+        	// Nahodne chovani. Kopie z examplefuncsplayer.
+        	
             try {
                 int fate = rand.nextInt(1000);
 
