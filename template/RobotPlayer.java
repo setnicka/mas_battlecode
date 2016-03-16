@@ -1,4 +1,4 @@
-package tardyteam;
+package template;
 
 import battlecode.common.*;
 
