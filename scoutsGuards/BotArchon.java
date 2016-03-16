@@ -22,7 +22,17 @@ public class BotArchon extends Bot {
 		while (true) {
 			try {
 				if (rc.isCoreReady()) {
-					RobotType typeToBuild = RobotType.GUARD;
+					int nearbyZombies = 0;
+					int nearbyEnemies = 0;
+					RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+					for (RobotInfo ri : nearbyRobots) {
+						if (ri.team == enemyTeam) nearbyEnemies++;
+						else if	(ri.team == Team.ZOMBIE) nearbyZombies++;
+					}
+					
+					RobotType typeToBuild = RobotType.SCOUT;
+					if (nearbyEnemies + nearbyZombies > 0) typeToBuild = RobotType.GUARD;
+					
 					if (rc.hasBuildRequirements(typeToBuild)) {
 						Direction dirToBuild = directions[rand.nextInt(8)];
 						for (int i = 0; i < 8; i++) {
