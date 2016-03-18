@@ -46,7 +46,7 @@ public class BotGuard extends Bot {
 						} else {
 							// zkus se posunout od archona k okraji
 							Direction d = myLoc.directionTo(parent).opposite();
-							if (parent.distanceSquaredTo(myLoc.add(d)) > maxDistanceToParent) {
+							if (parent.distanceSquaredTo(myLoc.add(d)) < maxDistanceToParent) {
 								moveInDirection(d);
 							}
 						}

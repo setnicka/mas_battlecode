@@ -6,6 +6,7 @@ public class BotArchon extends Bot {
 
 	MapLocation nest;
 	boolean onPosition = false;
+	int stuckCounter = 0;
 
 	public BotArchon(RobotController rc) {
 		super(rc);
@@ -41,6 +42,23 @@ public class BotArchon extends Bot {
 	private void moveToNest() throws GameActionException {
 		MapLocation loc = rc.getLocation();
 		Direction dir = loc.directionTo(nest);
+		if (!moveInDirection(loc.directionTo(nest))) {
+			// neco me blokuje
+			stuckCounter++;
+			if (stuckCounter >= 15) {
+				// jsem blokovany uz moc dlouho, zustan na miste
+				onPosition = true;
+				rc.setIndicatorString(0, "Ready.");
+			}
+		} else {
+			// bud jsem se posunul, nebo aspon odstranil rubble, vynuluj citac
+			stuckCounter = 0;
+		}
+		
+		// aktualizuj pozici a smer k hnizdu
+		loc = rc.getLocation();
+		dir = loc.directionTo(nest);
+		
 		if (!rc.onTheMap(loc.add(dir))) {
 			// hnizdo umisteno mimo mapu, posun ho do mapy
 			if (!rc.onTheMap(loc.add(Direction.NORTH)) && loc.y > nest.y) {
@@ -54,7 +72,12 @@ public class BotArchon extends Bot {
 				nest = new MapLocation(loc.x, nest.y);
 			}
 		}
-		moveInDirection(loc.directionTo(nest));
+		
+		if (nest.distanceSquaredTo(rc.getLocation()) < 3) {
+			// jsem u hnizda
+			onPosition = true;
+			rc.setIndicatorString(0, "On position." + nest.toString() + dir.toString());
+		}
 	}
 
 	// Pokusi se ve svem okoli postavit danou jednotku.
@@ -68,11 +91,13 @@ public class BotArchon extends Bot {
 				dirToBuild = dirToBuild.rotateLeft();
 			}
 		}
-		
+
 		// nepovedlo se postavit, zvys maximalni vzdalenost jednotek od hnizda
-		maxDistanceToParent += 2;
-		rc.broadcastMessageSignal(-1, maxDistanceToParent, sightRange * 2);
-		rc.setIndicatorString(0, "SEND NEW MAX: " + maxDistanceToParent);
+		if (rc.getTeamParts() > 100) {
+			maxDistanceToParent += 1;
+			rc.broadcastMessageSignal(-1, maxDistanceToParent, maxDistanceToParent + 10);
+			rc.setIndicatorString(0, "SEND NEW MAX: " + maxDistanceToParent);
+		}
 	}
 
 	// Pokusi se ve svem dostrelu opravit nekterou z vlastnich jednotek.
@@ -93,23 +118,25 @@ public class BotArchon extends Bot {
 			try {
 				processSignals();
 
-				if (nest.distanceSquaredTo(rc.getLocation()) < 3) {
-					onPosition = true;
-				}
 				if (!onPosition) {
 					// jdi do hnizda
 					if (rc.isCoreReady()) {
 						moveToNest();
+						// rc.setIndicatorString(0, nest.toString());
 					}
-					Clock.yield();
-					continue;
-				}
+				} else {
 
-				if (rc.isCoreReady()) {
-					// stav guardy
-					RobotType typeToBuild = RobotType.GUARD;
-					if (rc.hasBuildRequirements(typeToBuild)) {
-						tryToBuild(typeToBuild);
+					if (rc.isCoreReady()) {
+						// stav guardy
+						RobotType typeToBuild = RobotType.GUARD;
+						// if (rand.nextBoolean())
+						// typeToBuild = RobotType.GUARD;
+						// else
+						// typeToBuild = RobotType.SOLDIER;
+
+						if (rc.hasBuildRequirements(typeToBuild)) {
+							tryToBuild(typeToBuild);
+						}
 					}
 				}
 

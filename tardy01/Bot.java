@@ -48,7 +48,8 @@ public abstract class Bot {
 	// Pokusi se v danem smeru posunout, pripadne v nekterem ze sousednich
 	// smeru. Pokud v zadnem z techto smeru nejde udelat krok, pokusi se v
 	// techto smerech odklidit rubber.
-	protected void moveInDirection(Direction dir) throws GameActionException {
+	// Pokud provede nejakou akci, vrati true, jinak false
+	protected boolean moveInDirection(Direction dir) throws GameActionException {
 		MapLocation loc = rc.getLocation();
 		if (rc.canMove(dir)) {
 			rc.move(dir);
@@ -65,7 +66,9 @@ public abstract class Bot {
 		} else {
 			// blokuje me neco jineho nez rubber
 			// TODO co delat?
+			return false;
 		}
+		return true;
 	}
 
 	// Najde cil v dosahu 'range'. Pokud muzu utocit na zombii, volim tu s
@@ -107,8 +110,9 @@ public abstract class Bot {
 				if (s.getMessage()[0] == -1) {
 					// uprava maximalni vzdalenosti od rodice zatim moc
 					// nefunguje, protoze archon, ktery je zablokovan sam
-					// navysuje max. vzd. vys a vys
-					// maxDistanceToParent = s.getMessage()[1];
+					//navysuje max. vzd. vys a vys
+					maxDistanceToParent = s.getMessage()[1];
+					rc.setIndicatorString(0, "New max: " + maxDistanceToParent);
 				}
 			}
 		}
