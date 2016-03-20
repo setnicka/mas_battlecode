@@ -1,7 +1,6 @@
 package tardy01;
 
 import java.util.Random;
-
 import battlecode.common.*;
 
 public abstract class Bot {
@@ -45,10 +44,13 @@ public abstract class Bot {
 		}
 	}
 
+	public abstract void loop();
+
 	// Pokusi se v danem smeru posunout, pripadne v nekterem ze sousednich
 	// smeru. Pokud v zadnem z techto smeru nejde udelat krok, pokusi se v
 	// techto smerech odklidit rubber.
-	// Pokud provede nejakou akci, vrati true, jinak false
+	// Pokud provede nejakou akci, vrati true, jinak false (uz dela akci porad,
+	// takze zbytecny :))
 	protected boolean moveInDirection(Direction dir) throws GameActionException {
 		MapLocation loc = rc.getLocation();
 		if (rc.canMove(dir)) {
@@ -57,17 +59,25 @@ public abstract class Bot {
 			rc.move(dir.rotateLeft());
 		} else if (rc.canMove(dir.rotateRight())) {
 			rc.move(dir.rotateRight());
-		} else if (rc.senseRubble(loc.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+		} else if (rc.getType() != RobotType.TTM
+				&& rc.senseRubble(loc.add(dir)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 			rc.clearRubble(dir);
-		} else if (rc.senseRubble(loc.add(dir.rotateLeft())) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+		} else if (rc.getType() != RobotType.TTM
+				&& rc.senseRubble(loc.add(dir.rotateLeft())) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 			rc.clearRubble(dir.rotateLeft());
-		} else if (rc.senseRubble(loc.add(dir.rotateRight())) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+		} else if (rc.getType() != RobotType.TTM
+				&& rc.senseRubble(loc.add(dir.rotateRight())) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 			rc.clearRubble(dir.rotateRight());
 		} else {
-			// blokuje me neco jineho nez rubber
-			// TODO co delat?
-			return false;
+			for (int i = 0; i < 10; i++) {
+				dir = directions[rand.nextInt(directions.length)];
+				if (rc.canMove(dir)) {
+					rc.move(dir);
+					break;
+				}
+			}
 		}
+
 		return true;
 	}
 
@@ -75,8 +85,8 @@ public abstract class Bot {
 	// nejnizsim poctem zivotu. Pokud neni zadna zombie v dostrelu, zvol
 	// nepritele s nejnizsim poctem zivotu.
 	protected RobotInfo findTarget(int range) {
-		RobotInfo[] enemiesWithinRange = rc.senseNearbyRobots(range, enemyTeam);
-		RobotInfo[] zombiesWithinRange = rc.senseNearbyRobots(range, Team.ZOMBIE);
+		RobotInfo[] enemiesWithinRange = rc.senseNearbyRobots(Math.min(range, sightRange), enemyTeam);
+		RobotInfo[] zombiesWithinRange = rc.senseNearbyRobots(Math.min(range, sightRange), Team.ZOMBIE);
 
 		RobotInfo target = null;
 
@@ -110,13 +120,26 @@ public abstract class Bot {
 				if (s.getMessage()[0] == -1) {
 					// uprava maximalni vzdalenosti od rodice zatim moc
 					// nefunguje, protoze archon, ktery je zablokovan sam
-					//navysuje max. vzd. vys a vys
-					maxDistanceToParent = s.getMessage()[1];
-					rc.setIndicatorString(0, "New max: " + maxDistanceToParent);
+					// navysuje max. vzd. vys a vys
+					// maxDistanceToParent = s.getMessage()[1];
+					// rc.setIndicatorString(0, "New max: " +
+					// maxDistanceToParent);
 				}
 			}
 		}
 	}
 
-	public abstract void loop();
+	// zakoduje souradnice x,y do jednoho intu pomoci Cantor pairing function
+	protected int encodeLocation(MapLocation ml) {
+		return (ml.x + ml.y) * (ml.x + ml.y + 1) / 2 + ml.y;
+	}
+
+	// dekoduje souradnice x,y z jednoho intu pomoci Cantor pairing function
+	protected MapLocation decodeLocation(int z) {
+		int w = (int) Math.floor((Math.sqrt(8 * z + 1) - 1) / 2);
+		int t = w * (w + 1) / 2;
+		int y = z - t;
+		int x = w - y;
+		return new MapLocation(x, y);
+	}
 }

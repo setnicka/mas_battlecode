@@ -42,23 +42,12 @@ public class BotArchon extends Bot {
 	private void moveToNest() throws GameActionException {
 		MapLocation loc = rc.getLocation();
 		Direction dir = loc.directionTo(nest);
-		if (!moveInDirection(loc.directionTo(nest))) {
-			// neco me blokuje
-			stuckCounter++;
-			if (stuckCounter >= 15) {
-				// jsem blokovany uz moc dlouho, zustan na miste
-				onPosition = true;
-				rc.setIndicatorString(0, "Ready.");
-			}
-		} else {
-			// bud jsem se posunul, nebo aspon odstranil rubble, vynuluj citac
-			stuckCounter = 0;
-		}
-		
+		moveInDirection(loc.directionTo(nest));
+
 		// aktualizuj pozici a smer k hnizdu
 		loc = rc.getLocation();
 		dir = loc.directionTo(nest);
-		
+
 		if (!rc.onTheMap(loc.add(dir))) {
 			// hnizdo umisteno mimo mapu, posun ho do mapy
 			if (!rc.onTheMap(loc.add(Direction.NORTH)) && loc.y > nest.y) {
@@ -72,7 +61,7 @@ public class BotArchon extends Bot {
 				nest = new MapLocation(loc.x, nest.y);
 			}
 		}
-		
+
 		if (nest.distanceSquaredTo(rc.getLocation()) < 3) {
 			// jsem u hnizda
 			onPosition = true;
@@ -80,24 +69,26 @@ public class BotArchon extends Bot {
 		}
 	}
 
+	private boolean buildInDirection(RobotType type, Direction dirToBuild) throws GameActionException {
+		if (rc.isCoreReady() && rc.canBuild(dirToBuild, type)) {
+			rc.build(dirToBuild, type);
+			return true;
+		}
+		return false;
+	}
+
 	// Pokusi se ve svem okoli postavit danou jednotku.
-	private void tryToBuild(RobotType type) throws GameActionException {
+	private boolean buildInRandomDirection(RobotType type) throws GameActionException {
 		Direction dirToBuild = directions[rand.nextInt(8)];
 		for (int i = 0; i < 8; i++) {
-			if (rc.canBuild(dirToBuild, type)) {
-				rc.build(dirToBuild, type);
-				return;
+			if (buildInDirection(type, dirToBuild)) {
+				return true;
 			} else {
 				dirToBuild = dirToBuild.rotateLeft();
 			}
 		}
 
-		// nepovedlo se postavit, zvys maximalni vzdalenost jednotek od hnizda
-		if (rc.getTeamParts() > 100) {
-			maxDistanceToParent += 1;
-			rc.broadcastMessageSignal(-1, maxDistanceToParent, maxDistanceToParent + 10);
-			rc.setIndicatorString(0, "SEND NEW MAX: " + maxDistanceToParent);
-		}
+		return false;
 	}
 
 	// Pokusi se ve svem dostrelu opravit nekterou z vlastnich jednotek.
@@ -127,15 +118,19 @@ public class BotArchon extends Bot {
 				} else {
 
 					if (rc.isCoreReady()) {
-						// stav guardy
 						RobotType typeToBuild = RobotType.GUARD;
+						//if (rc.getRobotCount() > 20) {
+						//	typeToBuild = RobotType.SCOUT;
+						//} else {
+						//	typeToBuild = RobotType.GUARD;
+						//}
 						// if (rand.nextBoolean())
 						// typeToBuild = RobotType.GUARD;
 						// else
 						// typeToBuild = RobotType.SOLDIER;
 
 						if (rc.hasBuildRequirements(typeToBuild)) {
-							tryToBuild(typeToBuild);
+							buildInRandomDirection(typeToBuild);
 						}
 					}
 				}
