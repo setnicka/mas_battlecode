@@ -82,7 +82,9 @@ public class BotArchon extends Bot {
 						best_parts_amount = rc.senseParts(parts);
 					}
 				}
-				move(rc.getLocation().directionTo(best_parts));
+				if (rc.isCoreReady()) {
+					move(rc.getLocation().directionTo(best_parts));
+				}
 			}
 			// jinak nedelej nic
 		} else if (mode == M_DANGER) {
