@@ -95,7 +95,10 @@ public class BotArchon extends Bot {
 				Direction dirFromEnemy = dirToEnemy.opposite();
 
 				// kazde K-te kolo vyrob scouta a zkus ve smeru k nepriteli (pro odlakani)
-				if (are_there_zombies && runaway_counter >= RUNAWAY_LIMIT && rc.hasBuildRequirements(RobotType.SCOUT)) {
+				if (rc.getHealth() > rc.getType().maxHealth/2
+					&& are_there_zombies && runaway_counter >= RUNAWAY_LIMIT
+					&& rc.hasBuildRequirements(RobotType.SCOUT)
+				) {
 					Direction[] directions = {dirToEnemy, dirToEnemy.rotateLeft(), dirToEnemy.rotateRight(),
 						dirToEnemy.rotateLeft().rotateLeft(), dirToEnemy.rotateRight().rotateRight()};
 					for (int i = 0; i < directions.length; i++) {
@@ -107,8 +110,7 @@ public class BotArchon extends Bot {
 						}
 					}
 				}
-
-				// Pokud neutikame (nebo se nepovedlo postavit scouta):
+				// Pokud utikame (nebo se nepovedlo postavit scouta):
 				runaway_counter++;
 
 				Direction dirPreffered = loc.directionTo(loc.add(dirFromEnemy).add(lastDirection));
